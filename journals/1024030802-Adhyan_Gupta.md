@@ -30,7 +30,6 @@ What I learned
 - What confidence score means — how sure the model is about its detection
 
 Challenges faced
-- Some garbage images were Western-style (NYC bins) — not matching Indian civic context
 - Some test images were AI-generated/stock photos — model correctly ignored them
 - Garbage detection failed on Western-style bins — need India-specific images
 
