@@ -33,6 +33,12 @@ Challenges faced
 - Some test images were AI-generated/stock photos — model correctly ignored them
 - Garbage detection failed on Western-style bins — need India-specific images
 
+WEEK 2
+- Created Swimlane diagram
+- Created Use_case diagram
+- Created Activity diagram
+
+  
 Next week plan
 - Set up React frontend project
 - Build citizen upload screen (photo upload + GPS capture)
