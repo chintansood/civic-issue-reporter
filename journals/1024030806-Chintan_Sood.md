@@ -34,9 +34,8 @@ Challenges
 - Colab disconnected once mid-training, had to reinstall packages
 - Garbage detection weak due to dataset context mismatch (Western vs Indian)
 
-Next week plan
-- Upgrade to YOLOv8s, train 100 epochs
-- Add more India-specific garbage images
-- Start backend integration of best.pt into FastAPI
+WEEK 2
+-IMPLEMENTED UI/UX
+-MADE HARDCODED DASHBOARDS FOR USER LEVEL EXPERIENCE
 
 
