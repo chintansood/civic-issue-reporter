@@ -1,15 +1,31 @@
-# v0 sandbox internal files
-__v0_runtime_loader.js
-__v0_devtools.tsx
-__v0_jsx-dev-runtime.ts
-.snowflake/
-.v0-trash/
-.vercel/
+# ML Weights & Model Artifacts
+*.pt
+*.onnx
+ml/weights/*.pt
 
-# Environment variables
-.env*.local
-
-# Common ignores
-node_modules
+# Frontend & Node
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+node_modules/
 .next/
+
+# Python & Virtual Environments
+backend/__pycache__/
+ml/__pycache__/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.env
+.env.local
+
+# IDE & OS
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
