@@ -119,15 +119,38 @@ The system flow consists of three primary layers for core functionality:
   \item \textbf{AI Machine Learning Layer (Ultralytics YOLOv8):} Executes real-time object detection on input images, generates annotated bounding box overlays, and returns detection metadata alongside Base64 encoded result images~\cite{ramalingam2021smartcity}.
 \end{enumerate}
 
-\subsection{Technical Stack}
+\subsection{System Diagrams \& Workflow Models}
 
+To visually model system actor interactions and cross-component control flow, the architecture includes structural UML models:
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.85\textwidth]{Diagrams/use_case_diagram.pdf}
+  \caption{CivicScan Use Case Diagram outlining Citizen, Department Staff, and Admin functional boundaries.}
+  \label{fig:usecase}
+\end{figure}
+
+Figure~\ref{fig:usecase} illustrates functional boundaries across three primary system actors:
 \begin{itemize}
-  \item \textbf{Frontend Framework:} Next.js (React 19, TypeScript, Tailwind CSS, Lucide Icons).
-  \item \textbf{Backend Framework:} Python FastAPI, Uvicorn ASGI server.
-  \item \textbf{Computer Vision Model:} Ultralytics YOLOv8 fine-tuned on custom civic datasets (\texttt{ml/weights/best.pt}).
-  \item \textbf{Image Processing:} Pillow (PIL), OpenCV (\texttt{opencv-python-headless}), \texttt{pi-heif} for iOS HEIC support.
-  \item \textbf{Location \& GIS:} HTML5 Geolocation API with manual coordinate fallback.
+  \item \textbf{Citizen:} Uploads issue photos, captures GPS coordinates, tracks report status, and views active reports on the live map.
+  \item \textbf{Department Staff:} Accesses prioritized queues, validates/rejects submissions, updates report status, and marks issues as resolved.
+  \item \textbf{Admin:} Manages department routing, views city-wide report maps, and monitors analytics dashboards.
 \end{itemize}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.85\textwidth]{Diagrams/swimlane_diagram.pdf}
+  \caption{CivicScan Swimlane Activity Diagram detailing cross-component workflow.}
+  \label{fig:swimlane}
+\end{figure}
+
+Figure~\ref{fig:swimlane} details the end-to-end execution flow across four operational swimlanes (\textit{Citizen}, \textit{AI System - YOLOv8}, \textit{Backend Rule-Based Logic}, and \textit{Department Staff}):
+\begin{enumerate}
+  \item \textbf{Citizen:} Initializes app, captures photo and GPS coordinates, and submits report.
+  \item \textbf{AI System (YOLOv8):} Validates photo, executes object detection, and outputs bounding box coordinates, confidence scores, and issue category.
+  \item \textbf{Backend Logic:} Calculates severity score, checks duplicate radius, computes urgency score, routes to responsible department, persists report, and plots live map pin.
+  \item \textbf{Department Staff:} Triage queue review, field assignment, status progression (\texttt{Pending} $\rightarrow$ \texttt{In Progress} $\rightarrow$ \texttt{Resolved}), and resolution notification.
+\end{enumerate}
 
 \section{Implementation Details}
 
