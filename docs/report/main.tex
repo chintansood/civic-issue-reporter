@@ -175,6 +175,21 @@ Submitted reports are mapped onto the live civic map. Coordinate bounding box no
 
 Pins are color-coded by severity (Red = High, Yellow = Medium, Green = Low). Clicking any pin opens a modal detail card containing the report ID, issue classification, and Google Maps link.
 
+\subsection{System Diagrams \& Workflow Models}
+
+To model system actor interactions and component execution flow, the architecture includes structural UML models:
+
+\begin{enumerate}
+  \item \textbf{Use Case Diagram:} Outlines functional boundaries across three key actors (\textit{Citizen}, \textit{Department Staff}, and \textit{Municipal Admin}). The citizen workflow incorporates auto-capture and ML pipeline dependencies (\texttt{Upload issue photo} $\ll\text{include}\gg$ \texttt{Capture GPS location} $\ll\text{include}\gg$ \texttt{Detect issue (AI)} $\rightarrow$ \texttt{Estimate severity} $\rightarrow$ \texttt{Check duplicate report}), while staff and admin actors handle queue triage, department routing, map visualization, and analytical dashboards.
+  \item \textbf{Swimlane Activity Diagram:} Visualizes the end-to-end operational flow across four distinct swimlanes:
+  \begin{itemize}
+    \item \textbf{Citizen:} App initialization, photo + GPS capture, and report submission.
+    \item \textbf{AI System (YOLOv8):} Image validation, real-time object detection inference, and bounding box metadata output.
+    \item \textbf{Backend (Rule-Based Logic):} Severity score calculation, duplicate detection, department routing, urgency scoring, database persistence, and live map pin plotting.
+    \item \textbf{Department Staff:} Priority queue triage, report validation/rejection, field team assignment, status transitions (\texttt{Pending} $\rightarrow$ \texttt{In Progress} $\rightarrow$ \texttt{Resolved}), and resolution notifications.
+  \end{itemize}
+\end{enumerate}
+
 
 % ===== CHAPTER 3: RESULTS & EVALUATION =====
 

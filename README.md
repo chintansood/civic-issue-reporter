@@ -25,6 +25,13 @@ civic-issue-reporter/
 
 ---
 
+## 📐 System Diagrams & Workflow Models
+
+- **[Use Case Diagram](Diagrams/use_case%20diagram.pdf)**: Illustrates system actor boundaries (`Citizen`, `Department Staff`, `Municipal Admin`) and inclusion dependencies (`Upload photo` $\rightarrow$ `Capture GPS` $\rightarrow$ `Detect issue (AI)` $\rightarrow$ `Estimate severity` $\rightarrow$ `Check duplicate`).
+- **[Swimlane Activity Diagram](Diagrams/Swimlane%20Diagram.pdf)**: Details cross-component workflow across `Citizen`, `AI System (YOLOv8)`, `Backend Rule Logic`, and `Department Staff` swimlanes.
+
+---
+
 ## 🤖 Connecting Google Colab Model to Local Machine
 
 Your YOLOv8 model trained on Google Colab is saved at:
