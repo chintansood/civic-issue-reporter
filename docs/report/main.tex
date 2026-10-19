@@ -153,6 +153,72 @@ Figure~\ref{fig:swimlane} details the end-to-end execution flow across four oper
   \item \textbf{Department Staff:} Triage queue review, field assignment, status progression (\texttt{Pending} $\rightarrow$ \texttt{In Progress} $\rightarrow$ \texttt{Resolved}), and resolution notification.
 \end{enumerate}
 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.85\textwidth]{sequence diag1.drawio.pdf}
+  \caption{CivicScan Sequence Diagram detailing synchronous API request-response execution flow.}
+  \label{fig:sequence}
+\end{figure}
+
+Figure~\ref{fig:sequence} illustrates the step-by-step sequential message exchange between the Citizen client, Next.js frontend, FastAPI backend server, and Ultralytics YOLOv8 AI inference engine:
+\begin{enumerate}
+  \item \textbf{Image \& GPS Capture:} The citizen uploads an issue photo and retrieves GPS location coordinates via HTML5 Geolocation API.
+  \item \textbf{Detection Request:} The Next.js client issues a multipart POST request to FastAPI \texttt{/detect}.
+  \item \textbf{AI Model Inference:} FastAPI passes the image matrix to YOLOv8, which returns detection bounding boxes, confidence scores, and Base64 overlay graphics.
+  \item \textbf{Severity Calculation:} Backend computes dynamic severity score based on detection confidence and surface area ratio.
+  \item \textbf{Report Submission \& Plotting:} Report details are persisted to in-memory database and dynamically plotted on the interactive live map.
+\end{enumerate}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.85\textwidth]{classdiag.pdf}
+  \caption{CivicScan Class Diagram illustrating core entity data models and structural relationships.}
+  \label{fig:classdiag}
+\end{figure}
+
+Figure~\ref{fig:classdiag} details the object-oriented structure and domain entity relationships within CivicScan:
+\begin{itemize}
+  \item \textbf{User:} Represents system actors (Citizen, Department Staff, Admin) with authentication and action methods (\texttt{login()}, \texttt{submitReport()}, \texttt{viewReports()}).
+  \item \textbf{Report:} Core domain entity encapsulating image URL, GPS coordinates, status, urgency score, and methods for duplicate checking and department routing.
+  \item \textbf{Detection:} Encapsulates YOLOv8 machine learning inference outputs including confidence scores, bounding boxes, issue classification, and calculated severity.
+  \item \textbf{Department:} Represents municipal service departments managing assigned issue queues and field operations.
+  \item \textbf{Notification:} Handles automated status alerts dispatched to citizens upon report progression.
+\end{itemize}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.95\textwidth]{component_diagram.pdf}
+  \caption{CivicScan Component Diagram detailing subsystem decomposition, REST interfaces, and microservice integration.}
+  \label{fig:component}
+\end{figure}
+
+Figure~\ref{fig:component} illustrates the high-level structural decomposition, subsystems, and communication interfaces within CivicScan:
+\begin{itemize}
+  \item \textbf{React Frontend:} Modular client application encapsulating the Citizen Upload Page, Staff Dashboard Page, and Admin Dashboard Page, interacting via an Axios API client and rendering spatial locations via the Leaflet Map and GPS module. Built from \texttt{index.html} and \texttt{src/} and containerized via \texttt{frontend/Dockerfile}.
+  \item \textbf{FastAPI Backend:} Central application service exposing RESTful API endpoints (\texttt{api/routes/}) and providing core logic including JWT authentication, report persistence, spatial duplicate checking, rule-based department routing, urgency calculation, and notification dispatch. Containerized via \texttt{backend/Dockerfile}.
+  \item \textbf{PostgreSQL Database:} Relational data store persisting user accounts and submitted civic reports via the PostgreSQL DB API.
+  \item \textbf{File Storage:} Storage layer handling persistent storage for citizen-uploaded images and Base64-encoded annotated detection result images via a dedicated File I/O interface.
+  \item \textbf{ML Pipeline:} Dedicated AI inference subsystem (\texttt{inference.py}) executing image preprocessing, YOLOv8 object detection (\texttt{best.pt}), mathematical severity calculation (\texttt{severity.py}), heuristic cost estimation, and annotated bounding box result generation via the internal ML interface.
+  \item \textbf{Google Colab Training Environment:} Cloud training notebook (\texttt{civic\_yolo\_training.ipynb}) utilized for model training and exporting serialized model weights (\texttt{best.pt}).
+\end{itemize}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.95\textwidth]{collaboration_diagram.pdf}
+  \caption{CivicScan Collaboration Diagram illustrating object interactions, numbered message invocations, and synchronous data flow across system entities.}
+  \label{fig:collaboration}
+\end{figure}
+
+Figure~\ref{fig:collaboration} presents the UML Collaboration (Communication) Diagram, illustrating the structural organization and numbered chronological message passing between system objects during issue reporting and AI processing:
+\begin{enumerate}
+  \item \textbf{App Initialization \& UI Rendering (Messages 1--2):} The \textit{Citizen} launches the application (\texttt{1: Open App}), and the \textit{Frontend} responds by presenting the upload interface (\texttt{2: Show upload screen}).
+  \item \textbf{Image Capture \& Transmission (Messages 3--4):} The citizen captures and uploads the photo along with GPS coordinates (\texttt{3: upload photo + gps}). The frontend client optimizes/compresses the payload and dispatches a multipart HTTP POST request to the API endpoint (\texttt{4: compress + POST/detect}).
+  \item \textbf{Image Persistence \& AI Inference (Messages 5--8):} The \textit{Backend} dispatches the raw image for storage (\texttt{5: store image}; \texttt{6: image stored}), followed by initiating model execution on the \textit{ML Model} (\texttt{7: run inference}), which returns issue classifications, bounding box coordinates, and confidence levels (\texttt{8: type+confidence+bbox}).
+  \item \textbf{Severity Assessment \& Spatial Deduplication (Messages 9--11):} The backend executes internal mathematical severity computation (\texttt{9: calculate severity}) and queries the \textit{Database} for spatial and visual duplicates within a defined radius (\texttt{10: duplicate check(GPS + similarity)}; \texttt{11: no duplicate found}).
+  \item \textbf{Persistence, Scoring \& Department Routing (Messages 12--14):} Upon verification, the backend commits the record with calculated urgency scores (\texttt{12: save report + urgency score}), receives the newly generated unique identifier (\texttt{13: report ID returned}), and routes the issue to the relevant department queue (\texttt{14: assign department}).
+  \item \textbf{Client Notification \& Confirmation (Messages 15--18):} Complete detection metadata and annotated overlays are returned to the frontend (\texttt{15: return full detection result}), which updates the live map pin and detection card for citizen verification (\texttt{16: show result + map pin}). Upon final submission confirmation (\texttt{17: confirm submit}), success status is displayed to the user (\texttt{18: report submitted successfully}).
+\end{enumerate}
+
 \section{Implementation Details}
 
 \subsection{Module 1: Core Functionality \& Detection Pipeline}

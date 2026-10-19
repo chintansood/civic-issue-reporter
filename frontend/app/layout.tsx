@@ -1,36 +1,19 @@
-import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import { ToastProvider } from '../components/Toast'
 
 export const metadata: Metadata = {
-  title: 'CivicScan — AI Civic Intelligence',
-  description: 'Report, route and resolve civic issues with AI-powered civic intelligence.',
-  generator: 'v0.app',
+  title: 'CivicScan — AI Civic Issue Reporter | Patiala',
+  description: 'Report civic issues in seconds using AI. Automatic detection, routing, and resolution for Indian municipalities.',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>',
   },
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'light dark',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
-  ],
+  themeColor: '#1a1a2e',
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({
@@ -39,10 +22,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-[#f8f9fc]">
-      <body className="antialiased">
-        {children}
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+    <html lang="en" className="scroll-smooth">
+      <body className="antialiased bg-[#f8f9fc] text-[#1a1a2e] min-h-screen">
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   )

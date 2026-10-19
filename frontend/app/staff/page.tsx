@@ -1,7 +1,5 @@
-'use client'
+import { redirect } from 'next/navigation'
 
-import Page from '../page'
-
-export default function StaffPage() {
-  return <Page initialView="staff" />
+export default function StaffRootPage() {
+  redirect('/staff/dashboard')
 }

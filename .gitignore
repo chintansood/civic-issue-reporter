@@ -29,3 +29,7 @@ venv/
 Thumbs.db
 .vscode/
 .idea/
+
+# Uploaded incident media
+uploads/*
+!uploads/.gitkeep

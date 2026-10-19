@@ -10,8 +10,19 @@ from ml.severity import calculate_severity
 
 _model = None
 
+DEPT_MAP = {
+    "road_damage": "Roads Department",
+    "garbage": "Sanitation Department",
+    "waterlogging": "Water & Drainage Department"
+}
+
+COST_MAP = {
+    "road_damage": {"High": (20000, 50000), "Medium": (8000, 20000), "Low": (2000, 8000)},
+    "garbage": {"High": (5000, 15000), "Medium": (2000, 5000), "Low": (500, 2000)},
+    "waterlogging": {"High": (30000, 80000), "Medium": (10000, 30000), "Low": (3000, 10000)}
+}
+
 def get_weights_path() -> str:
-    # Look for ml/weights/best.pt relative to project root or script directory
     script_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(script_dir)
     
@@ -34,73 +45,77 @@ def load_yolo_model():
         
     weights_path = get_weights_path()
     if not os.path.exists(weights_path):
-        raise RuntimeError("Model not found. Run: python ml/download_model.py")
+        raise RuntimeError("Model not found at " + weights_path)
         
     _model = YOLO(weights_path)
     return _model
 
-def run_detection(pil_image: Image.Image, conf_threshold: float = 0.3):
+def detect_issue(image_input, conf_threshold: float = 0.3):
     """
-    Runs YOLOv8 detection on the provided PIL image.
-    Returns:
-      detections: List[dict] containing issue_type, confidence, severity, bbox
-      base64_result_image: str (JPEG base64)
+    Accepts bytes or PIL.Image.
+    Runs YOLOv8 detection and returns detections list and result_image base64.
     """
+    if isinstance(image_input, bytes):
+        pil_image = Image.open(io.BytesIO(image_input)).convert("RGB")
+    elif isinstance(image_input, Image.Image):
+        pil_image = image_input.convert("RGB")
+    else:
+        raise ValueError("Unsupported image input type")
+
     model = load_yolo_model()
     
-    # Convert PIL Image to RGB numpy array for YOLO
-    img_rgb = np.array(pil_image.convert("RGB"))
+    img_rgb = np.array(pil_image)
     img_height, img_width = img_rgb.shape[:2]
+    image_area = img_width * img_height
 
     results = model(img_rgb, conf=conf_threshold)
     
     detections = []
     
-    if len(results) > 0:
+    if len(results) > 0 and results[0].boxes is not None and len(results[0].boxes) > 0:
         result = results[0]
         boxes = result.boxes
         
         for box in boxes:
-            # Extract class index and name
             cls_id = int(box.cls[0].item())
             class_name = result.names.get(cls_id, f"issue_{cls_id}")
-            
-            # Standardize issue type string formatting (e.g. road_damage, garbage, waterlogging)
             issue_type = class_name.lower().replace(" ", "_")
-            
-            # Extract confidence
             confidence = float(box.conf[0].item())
             
-            # Extract bbox coordinates [xmin, ymin, xmax, ymax]
             xyxy = box.xyxy[0].tolist()
             bbox = [int(round(coord)) for coord in xyxy]
             
-            # Calculate severity
+            # Severity using formula
             severity = calculate_severity(confidence, bbox, img_width, img_height)
+            cost = COST_MAP.get(issue_type, {}).get(severity, (1000, 5000))
+            dept = DEPT_MAP.get(issue_type, "General Municipal")
             
             detections.append({
                 "issue_type": issue_type,
                 "confidence": round(confidence, 2),
                 "severity": severity,
-                "bbox": bbox
+                "bbox": bbox,
+                "department": dept,
+                "cost_min": cost[0],
+                "cost_max": cost[1]
             })
             
-        # Draw annotated result image
-        annotated_bgr = result.plot()  # returns BGR uint8 array
-        
-        # Encode to JPG base64 string
+        annotated_bgr = result.plot()
         success, encoded_img = cv2.imencode('.jpg', annotated_bgr)
         if success:
-            base64_result_image = base64.b64encode(encoded_img.tobytes()).decode('utf-8')
+            result_b64 = base64.b64encode(encoded_img.tobytes()).decode('utf-8')
         else:
-            # Fallback if cv2 fails
-            buf = io.BytesIO()
-            pil_image.save(buf, format="JPEG")
-            base64_result_image = base64.b64encode(buf.getvalue()).decode('utf-8')
+            buffer = io.BytesIO()
+            pil_image.save(buffer, format="JPEG")
+            result_b64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
     else:
-        # Fallback for no detections
-        buf = io.BytesIO()
-        pil_image.save(buf, format="JPEG")
-        base64_result_image = base64.b64encode(buf.getvalue()).decode('utf-8')
+        buffer = io.BytesIO()
+        pil_image.save(buffer, format="JPEG")
+        result_b64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
-    return detections, base64_result_image
+    return {"detections": detections, "result_image": result_b64}
+
+# Alias run_detection for compatibility
+def run_detection(pil_image: Image.Image, conf_threshold: float = 0.3):
+    res = detect_issue(pil_image, conf_threshold=conf_threshold)
+    return res["detections"], res["result_image"]
